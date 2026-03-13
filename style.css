@@ -1,3 +1,86 @@
 
+/* Layout & Global */
+* { box-sizing: border-box; font-family: Arial, sans-serif; }
+body { background-color: #f8f9fa; margin: 0; padding: 20px; }
+.app-container { max-width: 1100px; margin: 0 auto; }
+
+/* Input Header */
+.input-section { 
+    display: flex; justify-content: center; gap: 10px; margin-bottom: 40px; 
+}
+#todo-input { padding: 10px; width: 350px; border: 1px solid #ccc; border-radius: 4px; }
+#submit-btn { background: #438eb9; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; }
+
+/* The Columns */
+.lists-container {
+    display: flex;
+    gap: 30px;
+    justify-content: center;
+}
+
+.list-wrapper {
+    flex: 1;
+    background-color: #f1efeb; /* Light beige container */
+    padding: 20px;
+    border-radius: 6px;
+    min-height: 500px;
+}
+
+h3 { color: #555; margin-bottom: 20px; font-weight: bold; }
+ul { list-style: none; padding: 0; }
+
+/* Individual Todo Item (The Ribbon) */
+.todo-item {
+    background-color: #e9e5d9; /* Task bar color */
+    margin-bottom: 15px;
+    display: flex;
+    align-items: stretch;
+    min-height: 42px;
+    border-radius: 3px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+/* Centered Task Text */
+.todo-text {
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 5px 20px;
+    color: #444;
+    font-size: 0.95rem;
+}
+
+/* Button Grouping */
+.btn-group { display: flex; gap: 4px; padding-right: 4px; align-items: center; }
+
+/* Square Action Buttons */
+.btn-square {
+    width: 20px;
+    height: 25px;
+    border: none;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    border-radius: 2px;
+}
+
+/* Specific Colors from Image */
+.toggle-btn { background-color: #87b87f; margin-top: 8px;} /* Green */
+.edit-btn { background-color: #438eb9; }   /* Blue */
+.delete-btn { background-color: #d15b47; } /* Red */
+
+.btn-square:hover { filter: brightness(0.9); }
+
+/* Completed State Adjustments */
+#completed-list .todo-text {
+    text-decoration: none; /* Keep text clean like the image */
+    opacity: 0.8;
+}
+
 
 
