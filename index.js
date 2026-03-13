@@ -11,6 +11,12 @@
 const createTodoModel = () => {
   let todos = []; // Private state for the application
 
+
+    // --- NEW: Helper to save to localStorage ---
+  const saveLocal = () => {
+    localStorage.setItem('my_todos', JSON.stringify(todos));
+  };
+
   return {
     getTodos: () => todos,
 
@@ -19,10 +25,19 @@ const createTodoModel = () => {
        * Fetches initial dataset from external API
      * Initial data load. Populates the local state from the API.
      */
-    async fetchTodos() {
-      const res = await fetch('https://dummyjson.com/todos');
-      const data = await res.json();
-      todos = data.todos;
+ async fetchTodos() {
+      // --- NEW: Check localStorage first ---
+      const localData = localStorage.getItem('my_todos');
+      
+      if (localData) {
+        todos = JSON.parse(localData);
+      } else {
+        // Only fetch from API if localStorage is empty
+        const res = await fetch('https://dummyjson.com/todos');
+        const data = await res.json();
+        todos = data.todos;
+        saveLocal(); // Save initial API data to local
+      }
       return todos;
     },
 
@@ -43,6 +58,11 @@ const createTodoModel = () => {
       // operations (delete/edit) work on the correct unique item.
       newTodo.id = Date.now(); 
       todos.push(newTodo);
+
+
+ 
+      saveLocal(); // --- PERSIST CHANGE ---
+
     },
 
  /**
@@ -67,6 +87,8 @@ const createTodoModel = () => {
           body: JSON.stringify({ completed: todo.completed })
         });
       }
+
+        saveLocal(); // --- PERSIST CHANGE ---
     },
 
   
@@ -78,6 +100,8 @@ const createTodoModel = () => {
       if (id <= 255) {
         await fetch(`https://dummyjson.com/todos/${id}`, { method: 'DELETE' });
       }
+
+        saveLocal(); // --- PERSIST CHANGE ---
     },
     async updateTodo(id, newText) {
       const todo = todos.find(t => t.id === id);
@@ -91,6 +115,8 @@ const createTodoModel = () => {
           body: JSON.stringify({ todo: newText })
         });
       }
+
+        saveLocal(); // --- PERSIST CHANGE ---
     }
   };
 };
