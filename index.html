@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+     <title>MVC Todo App</title>
+      <link rel="stylesheet" href="style.css">
+      <script src="index.js" defer></script>
+</head>
+<body>
+     <div class="app-container">
+        <header class="input-section">
+            <input type="text" id="todo-input" placeholder="Enter task name...">
+            <button id="submit-btn">Submit</button>
+        </header>
+
+          <div class="lists-container">
+            <section class="list-wrapper">
+                <h3>Pending Tasks</h3>
+                <ul id="pending-list" class="todo-list"></ul>
+            </section>
+            
+              <section class="list-wrapper">
+                <h3>Completed Tasks</h3>
+                <ul id="completed-list" class="todo-list"></ul>
+            </section>
+        </div>
+    </div>
+    
+</body>
+</html>
