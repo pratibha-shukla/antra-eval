@@ -96,6 +96,8 @@ const createTodoModel = () => {
 };
 
 
+
+
 /**
  * --- VIEW ---
  * Handles the DOM. It doesn't "know" how data works; 
@@ -162,6 +164,8 @@ const createTodoView = () => {
     }
   };
 };
+
+
 
 
 
