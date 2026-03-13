@@ -1,18 +1,36 @@
 
 
 
-// --- MODEL ---
+/**
+ * --- MODEL ---
+ * Handles data logic, state management, and API communication.
+ * 
+ * Manages the "source of truth." It handles data structures, 
+ * state updates, and all asynchronous API communication.
+ */
 const createTodoModel = () => {
-  let todos = [];
+  let todos = []; // Private state for the application
 
   return {
     getTodos: () => todos,
+
+     
+      /**
+       * Fetches initial dataset from external API
+     * Initial data load. Populates the local state from the API.
+     */
     async fetchTodos() {
       const res = await fetch('https://dummyjson.com/todos');
       const data = await res.json();
       todos = data.todos;
       return todos;
     },
+
+
+       /**
+     * Sends new todo to server and updates local state.
+     * Note: DummyJSON doesn't actually persist data to their DB.
+     */
     async addTodo(todoText) {
       const res = await fetch('https://dummyjson.com/todos/add', {
         method: 'POST',
@@ -21,10 +39,17 @@ const createTodoModel = () => {
       });
       const newTodo = await res.json();
 
-      // IMPORTANT: Give new items a unique ID so they don't all share '255'
+       // Override the static ID (255) returned by the API so local 
+      // operations (delete/edit) work on the correct unique item.
       newTodo.id = Date.now(); 
       todos.push(newTodo);
     },
+
+ /**
+     * Switches completion status.
+     * Uses "Optimistic UI" logic by updating local state before the API call finishes.
+     */
+
     async toggleTodo(id) {
       const todo = todos.find(t => t.id === id);
       if (!todo) return;
@@ -32,9 +57,10 @@ const createTodoModel = () => {
       // Update locally FIRST so the UI moves immediately
       todo.completed = !todo.completed;
 
-      // Only call API if it's an original ID (< 255) 
-      // otherwise dummyjson returns 404 and breaks the code
-      if (id <= 255) {
+      // Logic Guard: DummyJSON only recognizes IDs it generated (1-255).
+      // We skip the API call for locally created items to avoid 404 errors.
+
+        if (id <= 255) {
         await fetch(`https://dummyjson.com/todos/${id}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
@@ -42,11 +68,13 @@ const createTodoModel = () => {
         });
       }
     },
+
+  
     async deleteTodo(id) {
-      // Filter locally first
+        // Remove from local array immediately for snappy UI
       todos = todos.filter(t => t.id !== id);
 
-      // FIX: Added /todos/ and the $ sign
+      // Added /todos/ and the $ sign
       if (id <= 255) {
         await fetch(`https://dummyjson.com/todos/${id}`, { method: 'DELETE' });
       }
@@ -55,7 +83,7 @@ const createTodoModel = () => {
       const todo = todos.find(t => t.id === id);
       if (todo) todo.todo = newText;
 
-      // FIX: Added /todos/ and the $ sign
+      // Added /todos/ and the $ sign
       if (id <= 255) {
         await fetch(`https://dummyjson.com/todos/${id}`, {
           method: 'PUT',
@@ -68,8 +96,11 @@ const createTodoModel = () => {
 };
 
 
-
-// --- VIEW ---
+/**
+ * --- VIEW ---
+ * Handles the DOM. It doesn't "know" how data works; 
+ * it only knows how to display it and capture user input.
+ */
 const createTodoView = () => {
   const elements = {
     appContainer: document.querySelector('.app-container'),
@@ -81,6 +112,11 @@ const createTodoView = () => {
 
   return {
     elements,
+ /**
+     * Clears and rebuilds the list items based on the provided data array.
+     */
+
+
     render(todos) {
       elements.pendingList.innerHTML = '';
       elements.completedList.innerHTML = '';
@@ -97,6 +133,8 @@ const createTodoView = () => {
             <button class="delete-btn btn-square">🗑️</button>
           </div>`;
 
+          // Sort items into different lists based on status
+
         if (todo.completed) {
           li.innerHTML = `<button class="toggle-btn btn-square">⬅️</button>
           ${textHtml}
@@ -110,12 +148,14 @@ const createTodoView = () => {
       });
     },
 
-  
+  /**
+     * Custom event binder to bridge View and Controller for the "Add" action.
+     */
   bindAddTodo(handler) {
       elements.submitBtn.onclick = () => {
         if (elements.input.value.trim()) {
           handler(elements.input.value);
-          elements.input.value = '';
+          elements.input.value = '';  // Clear input after submission
   
         }
       };
@@ -126,13 +166,25 @@ const createTodoView = () => {
 
 
 
-// --- CONTROLLER ---
+/**
+ * --- CONTROLLER ---
+ * The "Brain." It listens to the View, tells the Model what to do, 
+ * and tells the View when to re-render.
+ */
 const todoController = async (model, view) => {
+
+
+   /**
+   * Main click delegation. Instead of adding listeners to every button,
+   * we listen at the container level for better performance.
+   */
+
+
   const handleClicks = async (e) => {
     const listItem = e.target.closest('li');
     if (!listItem) return;
     
-    // Use Number() to ensure the ID matches the model's number format
+ // Dataset IDs come back as strings; convert to Number for Model comparison
     const id = Number(listItem.dataset.id);
 
     if (e.target.closest('.delete-btn')) {
@@ -140,12 +192,20 @@ const todoController = async (model, view) => {
     } else if (e.target.closest('.toggle-btn')) {
       await model.toggleTodo(id);
     } else if (e.target.closest('.edit-btn')) {
+
+       // Logic for editing is handled separately to manage the contentEditable state
       await handleEdit(e.target.closest('.edit-btn'), id);
       return; 
     }
     
+
+    // Refresh the UI with the updated data
     view.render(model.getTodos());
   };
+
+   /**
+   * Manages the "Inline Editing" state.
+   */
 
   const handleEdit = async (btn, id) => {
     const li = btn.closest('li');
@@ -153,14 +213,18 @@ const todoController = async (model, view) => {
     const isEditing = span.contentEditable === 'true';
 
     if (isEditing) {
+
+        // Save Mode
       await model.updateTodo(id, span.innerText);
       span.contentEditable = 'false';
       btn.innerText = '✏️';
       view.render(model.getTodos());
     } else {
+
+       // Edit Mode
       span.contentEditable = 'true';
       span.focus();
-      btn.innerText = '💾';
+      btn.innerText = '💾'; // Change icon to "Save"
     }
   };
 
@@ -176,7 +240,7 @@ const todoController = async (model, view) => {
   view.render(model.getTodos());
 };
 
-// Start
+// Start application intial 
 todoController(createTodoModel(), createTodoView());
 
 
